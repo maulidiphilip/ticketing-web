@@ -1,0 +1,43 @@
+import "server-only";
+import { cookies } from "next/headers";
+import type { Role } from "./types";
+
+const COOKIE_NAME = "ticketing_session";
+
+export type Session = {
+  accessToken: string;
+  userId: string;
+  fullName: string;
+  email: string;
+  role: Role;
+};
+
+export async function createSession(
+  session: Session,
+  expiresInSeconds: number,
+) {
+  const cookieStore = await cookies();
+  cookieStore.set(COOKIE_NAME, JSON.stringify(session), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: expiresInSeconds,
+  });
+}
+
+export async function getSession(): Promise<Session | null> {
+  const cookieStore = await cookies();
+  const raw = cookieStore.get(COOKIE_NAME)?.value;
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as Session;
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteSession() {
+  const cookieStore = await cookies();
+  cookieStore.delete(COOKIE_NAME);
+}
