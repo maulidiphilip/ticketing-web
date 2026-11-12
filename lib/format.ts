@@ -20,3 +20,8 @@ const numberFormatter = new Intl.NumberFormat("en-GB");
 export function formatMwk(amount: number): string {
   return `MWK ${numberFormatter.format(amount)}`;
 }
+
+// Call this only after request-time data has been read (for example after `await connection()`).
+export function isInPast(iso: string): boolean {
+  return new Date(iso).getTime() < Date.now();
+}

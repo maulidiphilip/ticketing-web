@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getMyEvents } from "@/lib/events";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime, isInPast } from "@/lib/format";
 
 async function EventsTable() {
   await connection();
@@ -21,13 +21,11 @@ async function EventsTable() {
   if (events.length === 0) {
     return (
       <p className="text-sm">
-        You haven&apos;t created any events yet. Click &quot;Create event&quot;
-        to add your first one.
+        You haven&apos;t created any events yet. Click &quot;Create event&quot; to
+        add your first one.
       </p>
     );
   }
-
-  const now = Date.now();
 
   return (
     <Table>
@@ -41,7 +39,7 @@ async function EventsTable() {
       </TableHeader>
       <TableBody>
         {events.map((event) => {
-          const isPast = new Date(event.startsAt).getTime() < now;
+          const isPast = isInPast(event.startsAt);
           return (
             <TableRow key={event.id}>
               <TableCell className="font-medium">
