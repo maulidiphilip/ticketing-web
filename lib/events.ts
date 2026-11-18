@@ -4,6 +4,11 @@ import { ApiError, apiFetch } from "@/lib/api";
 import { getSession } from "@/lib/session";
 import type { EventItem } from "@/lib/types";
 
+// Public: upcoming events, earliest first.
+export async function getUpcomingEvents(): Promise<EventItem[]> {
+  return apiFetch<EventItem[]>("/api/events");
+}
+
 export async function getMyEvents(): Promise<EventItem[]> {
   const session = await getSession();
   if (!session) redirect("/login");
