@@ -3,20 +3,24 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { getEvent } from "@/lib/events";
 import { formatDateTime, formatMwk, isInPast } from "@/lib/format";
+import { getSession } from "@/lib/session";
 import { getTicketTypes } from "@/lib/ticket-types";
 
 async function EventDetails({ params }: { params: Promise<{ id: string }> }) {
   await connection();
   const { id } = await params;
-  const [event, ticketTypes] = await Promise.all([
+  const [event, ticketTypes, session] = await Promise.all([
     getEvent(id),
     getTicketTypes(id),
+    getSession(),
   ]);
   if (!event) notFound();
 
   const started = isInPast(event.startsAt);
+  const nextParam = encodeURIComponent(`/events/${event.id}`);
 
   return (
     <div className="flex flex-col gap-8">
@@ -53,26 +57,48 @@ async function EventDetails({ params }: { params: Promise<{ id: string }> }) {
         ) : ticketTypes.length === 0 ? (
           <p className="text-sm">Tickets are not on sale yet.</p>
         ) : (
-          <ul className="flex max-w-xl flex-col gap-3">
-            {ticketTypes.map((ticketType) => (
-              <li
-                key={ticketType.id}
-                className="flex items-center justify-between rounded-lg border p-4"
-              >
-                <div>
-                  <p className="font-medium">{ticketType.name}</p>
-                  <p className="text-sm">{formatMwk(ticketType.price)}</p>
+          <>
+            <ul className="flex max-w-xl flex-col gap-3">
+              {ticketTypes.map((ticketType) => (
+                <li
+                  key={ticketType.id}
+                  className="flex items-center justify-between rounded-lg border p-4"
+                >
+                  <div>
+                    <p className="font-medium">{ticketType.name}</p>
+                    <p className="text-sm">{formatMwk(ticketType.price)}</p>
+                  </div>
+                  {ticketType.quantityAvailable > 0 ? (
+                    <Badge variant="secondary">
+                      {ticketType.quantityAvailable} available
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline">Sold out</Badge>
+                  )}
+                </li>
+              ))}
+            </ul>
+
+            {!session && (
+              <div className="max-w-xl rounded-lg border bg-muted p-4 text-sm">
+                <p>Log in or create an account to buy tickets.</p>
+                <div className="mt-3 flex gap-3">
+                  <Link
+                    href={`/login?next=${nextParam}`}
+                    className={buttonVariants({ size: "sm" })}
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    href={`/register?next=${nextParam}`}
+                    className={buttonVariants({ variant: "outline", size: "sm" })}
+                  >
+                    Create account
+                  </Link>
                 </div>
-                {ticketType.quantityAvailable > 0 ? (
-                  <Badge variant="secondary">
-                    {ticketType.quantityAvailable} available
-                  </Badge>
-                ) : (
-                  <Badge variant="outline">Sold out</Badge>
-                )}
-              </li>
-            ))}
-          </ul>
+              </div>
+            )}
+          </>
         )}
       </section>
     </div>

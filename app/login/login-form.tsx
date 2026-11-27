@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
-import { login, type LoginState } from "@/lib/auth-actions";
+import { login, type AuthFormState } from "@/lib/auth-actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,19 +14,29 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const initialState: LoginState = {};
+const initialState: AuthFormState = {};
 
-export function LoginForm() {
-  const [state, formAction, pending] = useActionState(login, initialState);
+export function LoginForm({ next }: { next: string }) {
+  const [state, formAction, pending] = useActionState<AuthFormState, FormData>(
+    login,
+    initialState,
+  );
+  const registerHref = next
+    ? `/register?next=${encodeURIComponent(next)}`
+    : "/register";
 
   return (
     <Card className="w-full max-w-sm">
       <CardHeader>
-        <CardTitle>Organizer login</CardTitle>
-        <CardDescription>Sign in to manage your events.</CardDescription>
+        <CardTitle>Log in</CardTitle>
+        <CardDescription>
+          Welcome back. Log in to buy tickets or manage your events.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form action={formAction} className="flex flex-col gap-4">
+          <input type="hidden" name="next" value={next} />
+
           {state.error && (
             <p
               role="alert"
@@ -46,9 +57,7 @@ export function LoginForm() {
               required
             />
             {state.fieldErrors?.email && (
-              <p className="text-sm text-red-700">
-                {state.fieldErrors.email[0]}
-              </p>
+              <p className="text-sm text-red-700">{state.fieldErrors.email[0]}</p>
             )}
           </div>
 
@@ -69,8 +78,18 @@ export function LoginForm() {
           </div>
 
           <Button type="submit" disabled={pending}>
-            {pending ? "Signing in…" : "Sign in"}
+            {pending ? "Signing in…" : "Log in"}
           </Button>
+
+          <p className="text-sm">
+            No account yet?{" "}
+            <Link href={registerHref} className="underline">
+              Create one
+            </Link>
+          </p>
+          <Link href="/" className="text-sm underline">
+            ← Back to events
+          </Link>
         </form>
       </CardContent>
     </Card>
