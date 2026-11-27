@@ -9,12 +9,17 @@ async function AuthNav() {
 
   if (!session) {
     return (
-      <Link
-        href="/login"
-        className={buttonVariants({ variant: "outline", size: "sm" })}
-      >
-        Log in
-      </Link>
+      <div className="flex items-center gap-2">
+        <Link
+          href="/login"
+          className={buttonVariants({ variant: "outline", size: "sm" })}
+        >
+          Log in
+        </Link>
+        <Link href="/register" className={buttonVariants({ size: "sm" })}>
+          Create account
+        </Link>
+      </div>
     );
   }
 
